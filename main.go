@@ -1,0 +1,125 @@
+package main;
+
+import (
+    "os"
+    "io/ioutil"
+    "fmt"
+    "encoding/json"
+    "github.com/therecipe/qt/core"
+    "github.com/therecipe/qt/gui"
+    "github.com/therecipe/qt/widgets"
+)
+
+const CARD_SET_DIR = "cardsets"
+
+func UNUSED(x ...interface{}) {}
+
+// This type is used to list the card sets in the load menu
+type CardSetInfo struct {
+    fileName    string;
+    title       string;
+    cardCount   int;
+}
+
+type Card struct {
+    Front   string; // The question
+    Back    string; // The answer
+}
+
+type CardSet struct {
+    Name    string; // Display name
+    Cards   []Card; // The cards themselves
+    From    string; // The name of the front side of cards
+    To      string; // The name of the back side of cards
+}
+
+func readCardSet(fileName string) (CardSet, error) {
+    var readBytes, err = ioutil.ReadFile(CARD_SET_DIR+string(os.PathSeparator)+fileName)
+    if err != nil {
+        return CardSet{}, err
+    }
+    var readStruct = CardSet{}
+    err = json.Unmarshal(readBytes, &readStruct)
+    if err != nil {
+        return CardSet{}, err
+    }
+    return readStruct, nil
+}
+
+func readCardsetInfo(fileName string) (CardSetInfo, error) {
+    var cardSet, err = readCardSet(fileName)
+    return CardSetInfo{fileName, cardSet.Name, len(cardSet.Cards)}, err
+}
+
+func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
+    fmt.Printf("Opening card set: \"%s\"\n", item.Text(1))
+}
+
+func loadButtonCallback() {
+    var window = widgets.NewQWidget(nil, 0)
+    window.SetWindowTitle("MemCards - Load")
+    window.SetFixedSize2(800, 500)
+
+    var dirEntry, err = ioutil.ReadDir(CARD_SET_DIR)
+    if err != nil {
+        var errLabel = widgets.NewQLabel2("Failed to read directory: \""+CARD_SET_DIR+"\": "+err.Error(),
+                window, 0)
+        errLabel.SetGeometry2(0, 0, window.Width(), window.Height())
+        errLabel.SetAlignment(core.Qt__AlignCenter)
+    } else {
+        var fileList []string
+        for _, f := range dirEntry {
+            fileList = append(fileList, f.Name())
+        }
+        fmt.Println("Card set files inside \""+CARD_SET_DIR+"\":", fileList)
+
+        var listWidget = widgets.NewQTreeWidget(window)
+        listWidget.SetRootIsDecorated(false)
+        listWidget.SetHeaderLabels([]string{"Title", "File Name", "# of Cards"})
+        listWidget.SetColumnCount(3)
+        listWidget.SetGeometry2(0, 0, window.Width(), window.Height())
+        listWidget.SetAllColumnsShowFocus(true)
+        listWidget.SetAlternatingRowColors(true)
+        listWidget.ConnectItemDoubleClicked(func(item *widgets.QTreeWidgetItem, _ int) {
+            window.Close()
+            loadListItemDoubleClickedCallback(item)
+        })
+
+        for _, f := range fileList {
+            var info, err = readCardsetInfo(f)
+            if err != nil {
+                fmt.Printf("%s: ERROR: %s\n", f, err.Error())
+            } else {
+                fmt.Printf("%s: %s\n", f, info.title)
+                var item = widgets.NewQTreeWidgetItem(0)
+                item.SetText(0, info.title)
+                item.SetText(1, info.fileName)
+                item.SetText(2, fmt.Sprint(info.cardCount))
+                listWidget.AddTopLevelItem(item)
+            }
+        }
+    }
+
+    window.Show()
+}
+
+func main() {
+    var app = gui.NewQGuiApplication(len(os.Args), os.Args)
+
+    var window = widgets.NewQWidget(nil, 0)
+    window.SetWindowTitle("MemCards")
+    window.SetFixedSize2(500, 200)
+
+    var loadButton = widgets.NewQPushButton2("Load", window)
+    loadButton.SetGeometry2(0, 0, 500, 100)
+    loadButton.ConnectPressed(func() {
+        window.Close()
+        loadButtonCallback()
+    })
+
+    var createButton = widgets.NewQPushButton2("Create", window)
+    createButton.SetGeometry2(0, 100, 500, 100)
+
+    window.Show()
+    app.Exec()
+}
