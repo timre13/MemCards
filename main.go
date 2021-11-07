@@ -108,6 +108,15 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
         displayActiveCard()
     })
 
+    // Note: Hack to add shortcut to a label
+    var flipButton = widgets.NewQPushButton(window)
+    flipButton.SetGeometry2(-100, -100, 0, 0) // Hide
+    flipButton.SetShortcut(gui.NewQKeySequence2("Up", gui.QKeySequence__NativeText))
+    flipButton.ConnectPressed(func() {
+        isActiveCardFrontSide = !isActiveCardFrontSide
+        displayActiveCard()
+    })
+
     var goToNextCard = func() {
         activeCardI++
         if activeCardI >= len(cardSet.Cards)-1 {
@@ -130,11 +139,13 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     goToPrevCardButton.ConnectPressed(goToPrevCard)
     goToPrevCardButton.SetGeometry2(0, 40, 20, 440)
     goToPrevCardButton.SetToolTip("Go to previous card")
+    goToPrevCardButton.SetShortcut(gui.NewQKeySequence2("Left", gui.QKeySequence__NativeText))
 
     var goToNextCardButton = widgets.NewQPushButton2(">", window)
     goToNextCardButton.SetToolTip("Go to next card")
     goToNextCardButton.ConnectPressed(goToNextCard)
     goToNextCardButton.SetGeometry2(480, 40, 20, 440)
+    goToNextCardButton.SetShortcut(gui.NewQKeySequence2("Right", gui.QKeySequence__NativeText))
 
     displayActiveCard()
 
@@ -171,6 +182,15 @@ func loadButtonCallback() {
             loadListItemDoubleClickedCallback(item)
         })
 
+        // Note: Hack to add shortcut to a QTreeWidget
+        var openButton = widgets.NewQPushButton(window)
+        openButton.SetGeometry2(-100, -100, 0, 0) // Hide
+        openButton.SetShortcut(gui.NewQKeySequence2("Return", gui.QKeySequence__NativeText))
+        openButton.ConnectPressed(func() {
+            window.Close()
+            loadListItemDoubleClickedCallback(listWidget.CurrentItem())
+        })
+
         for _, f := range fileList {
             var info, err = readCardsetInfo(f)
             if err != nil {
@@ -196,7 +216,8 @@ func main() {
     window.SetWindowTitle("MemCards")
     window.SetFixedSize2(500, 200)
 
-    var loadButton = widgets.NewQPushButton2("Load", window)
+    var loadButton = widgets.NewQPushButton2("&Load", window)
+    loadButton.SetShortcut(gui.NewQKeySequence2("L", gui.QKeySequence__NativeText))
     loadButton.SetStyleSheet("font: 18pt")
     loadButton.SetGeometry2(0, 0, 500, 100)
     loadButton.ConnectPressed(func() {
@@ -204,7 +225,8 @@ func main() {
         loadButtonCallback()
     })
 
-    var createButton = widgets.NewQPushButton2("Create", window)
+    var createButton = widgets.NewQPushButton2("&Create", window)
+    createButton.SetShortcut(gui.NewQKeySequence2("C", gui.QKeySequence__NativeText))
     createButton.SetStyleSheet("font: 18pt")
     createButton.SetGeometry2(0, 100, 500, 100)
 
