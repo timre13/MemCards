@@ -129,7 +129,10 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     var goToPrevCardButton = widgets.NewQPushButton2("<", window)
     goToPrevCardButton.ConnectPressed(goToPrevCard)
     goToPrevCardButton.SetGeometry2(0, 40, 20, 440)
+    goToPrevCardButton.SetToolTip("Go to previous card")
+
     var goToNextCardButton = widgets.NewQPushButton2(">", window)
+    goToNextCardButton.SetToolTip("Go to next card")
     goToNextCardButton.ConnectPressed(goToNextCard)
     goToNextCardButton.SetGeometry2(480, 40, 20, 440)
 
