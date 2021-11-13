@@ -12,6 +12,14 @@ import (
 
 const CARD_SET_DIR = "cardsets"
 
+const (
+    COLOR_BG            = "#1D3557"
+    COLOR_BG2           = "#457B9D"
+    COLOR_FG            = "#D7DCEA"
+    COLOR_CARD_FRONT    = "#97D8B2"
+    COLOR_CARD_BACK     = "#F68E5F"
+)
+
 func UNUSED(x ...interface{}) {}
 
 // This type is used to list the card sets in the load menu
@@ -63,6 +71,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     fmt.Printf("Opening card set: \"%s\"\n", item.Text(CARD_SET_LIST_COL_FILENAME))
 
     var window = widgets.NewQWidget(nil, 0)
+    window.SetStyleSheet(fmt.Sprintf("background-color: %s; color: %s", COLOR_BG, COLOR_FG))
     window.SetWindowTitle("MemCards: "+item.Text(CARD_SET_LIST_COL_TITLE))
     window.SetFixedSize2(500, 500)
 
@@ -88,11 +97,11 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     var displayActiveCard = func() {
         var bgColor string;
         if isActiveCardFrontSide {
-            bgColor = "#293CCA"
+            bgColor = COLOR_CARD_FRONT
             cardWidget.SetText(cardSet.Cards[activeCardI].Front)
             cardWidget.SetToolTip(cardSet.From)
         } else {
-            bgColor = "#C8851F"
+            bgColor = COLOR_CARD_BACK
             cardWidget.SetText(cardSet.Cards[activeCardI].Back)
             cardWidget.SetToolTip(cardSet.To)
         }
@@ -154,6 +163,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
 
 func loadButtonCallback() {
     var window = widgets.NewQWidget(nil, 0)
+    window.SetStyleSheet(fmt.Sprintf("background-color: %s; color: %s", COLOR_BG, COLOR_FG))
     window.SetWindowTitle("MemCards - Load")
     window.SetFixedSize2(800, 500)
 
@@ -171,12 +181,12 @@ func loadButtonCallback() {
         fmt.Println("Card set files inside \""+CARD_SET_DIR+"\":", fileList)
 
         var listWidget = widgets.NewQTreeWidget(window)
+        listWidget.SetStyleSheet(fmt.Sprintf("selection-background-color: %s;", COLOR_BG2));
         listWidget.SetRootIsDecorated(false)
         listWidget.SetHeaderLabels([]string{"Title", "File Name", "# of Cards"})
         listWidget.SetColumnCount(COUNT_OF_CARD_SET_LIST_COLS)
         listWidget.SetGeometry2(0, 0, window.Width(), window.Height())
         listWidget.SetAllColumnsShowFocus(true)
-        listWidget.SetAlternatingRowColors(true)
         listWidget.ConnectItemDoubleClicked(func(item *widgets.QTreeWidgetItem, _ int) {
             window.Close()
             loadListItemDoubleClickedCallback(item)
@@ -213,6 +223,7 @@ func main() {
     var app = gui.NewQGuiApplication(len(os.Args), os.Args)
 
     var window = widgets.NewQWidget(nil, 0)
+    window.SetStyleSheet(fmt.Sprintf("background-color: %s; color: %s", COLOR_BG, COLOR_FG))
     window.SetWindowTitle("MemCards")
     window.SetFixedSize2(500, 200)
 
