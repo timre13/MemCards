@@ -118,10 +118,19 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     })
 
     // Note: Hack to add shortcut to a label
-    var flipButton = widgets.NewQPushButton(window)
-    flipButton.SetGeometry2(-100, -100, 0, 0) // Hide
-    flipButton.SetShortcut(gui.NewQKeySequence2("Up", gui.QKeySequence__NativeText))
-    flipButton.ConnectPressed(func() {
+    var flipButton1 = widgets.NewQPushButton(window)
+    flipButton1.SetGeometry2(-100, -100, 0, 0) // Hide
+    flipButton1.SetShortcut(gui.NewQKeySequence2("Up", gui.QKeySequence__NativeText))
+    flipButton1.ConnectPressed(func() {
+        isActiveCardFrontSide = !isActiveCardFrontSide
+        displayActiveCard()
+    })
+
+    // Note: Hack to add shortcut to a label
+    var flipButton2 = widgets.NewQPushButton(window)
+    flipButton2.SetGeometry2(-100, -100, 0, 0) // Hide
+    flipButton2.SetShortcut(gui.NewQKeySequence2("Down", gui.QKeySequence__NativeText))
+    flipButton2.ConnectPressed(func() {
         isActiveCardFrontSide = !isActiveCardFrontSide
         displayActiveCard()
     })
