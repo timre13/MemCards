@@ -247,7 +247,7 @@ func writeCardSetToFile(filename string, cardSet *CardSet) error {
 }
 
 func createButtonCb(cardSetTitle string, cardSetCSV string) {
-    var filename = strings.ReplaceAll(cardSetTitle, " ", "_")
+    var filename = strings.ReplaceAll(cardSetTitle, " ", "_")+".json"
 
     var reader = csv.NewReader(strings.NewReader(cardSetCSV))
     var cardVals, err = reader.ReadAll()
