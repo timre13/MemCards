@@ -4,7 +4,10 @@ import (
     "os"
     "io/ioutil"
     "fmt"
+    "strings"
+    "errors"
     "encoding/json"
+    "encoding/csv"
     "github.com/therecipe/qt/core"
     "github.com/therecipe/qt/gui"
     "github.com/therecipe/qt/widgets"
@@ -170,7 +173,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     window.Show()
 }
 
-func loadButtonCallback() {
+func showLoadWinButtonCb() {
     var window = widgets.NewQWidget(nil, 0)
     window.SetStyleSheet(fmt.Sprintf("background-color: %s; color: %s", COLOR_BG, COLOR_FG))
     window.SetWindowTitle("MemCards - Load")
@@ -228,6 +231,94 @@ func loadButtonCallback() {
     window.Show()
 }
 
+func writeCardSetToFile(filename string, cardSet *CardSet) error {
+    jsonCardSet, err := json.Marshal(*cardSet)
+    if err != nil {
+        return errors.New("Error creating output JSON: "+err.Error())
+    }
+
+    fmt.Println("Writing JSON to file: "+string(jsonCardSet))
+    // TODO: Don't overwrite existing file
+    err = ioutil.WriteFile(CARD_SET_DIR+string(os.PathSeparator)+filename, jsonCardSet, 0o644)
+    if err != nil {
+        return errors.New("Error writing to file: "+filename+": "+err.Error())
+    }
+    return nil
+}
+
+func createButtonCb(cardSetTitle string, cardSetCSV string) {
+    var filename = strings.ReplaceAll(cardSetTitle, " ", "_")
+
+    var reader = csv.NewReader(strings.NewReader(cardSetCSV))
+    var cardVals, err = reader.ReadAll()
+    if err != nil {
+        var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Critical, "Error",
+            "Error creating card set: "+err.Error(),
+            widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
+        msgBox.Show()
+        return
+    } else if len(cardVals) < 2 {
+        var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Critical, "Error",
+            "Error creating card set: Not enough values in CSV.",
+            widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
+        msgBox.Show()
+        return
+    }
+
+    var cardSet = CardSet{}
+    cardSet.Name = cardSetTitle
+    cardSet.From = cardVals[0][0]
+    cardSet.To = cardVals[0][1]
+    for i, val := range cardVals {
+        if i == 0 { continue }
+        cardSet.Cards = append(cardSet.Cards, Card{Front: val[0], Back: val[1]})
+    }
+
+    writeCardSetToFile(filename, &cardSet)
+    if err != nil {
+        var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Critical, "Error",
+            err.Error(),
+            widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
+        msgBox.Show()
+        return
+    }
+
+    var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Information, "Card Set Created",
+        fmt.Sprintf("Created a card set.\nTitle: %s\nFilename: %s\n# of cards: %d", cardSet.Name, filename, len(cardSet.Cards)),
+        widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
+    msgBox.Show()
+}
+
+func showCreateWinButtonCb() {
+    var window = widgets.NewQWidget(nil, 0)
+    window.SetStyleSheet(fmt.Sprintf("background-color: %s; color: %s", COLOR_BG, COLOR_FG))
+    window.SetWindowTitle("MemCards - Create - \"Unnamed\"")
+    window.SetFixedSize2(800, 500)
+
+    var titleEntry = widgets.NewQLineEdit2("Unnamed", window)
+    titleEntry.SetGeometry2(0, 0, 800, 30)
+    titleEntry.SetStyleSheet("font: 18pt")
+    titleEntry.SetAlignment(core.Qt__AlignCenter)
+    titleEntry.ConnectTextEdited(func(val string) {
+        window.SetWindowTitle("MemCards - Create - \""+val+"\"")
+    })
+
+    var textWidget = widgets.NewQPlainTextEdit(window)
+    textWidget.SetGeometry2(0, 30, window.Width(), window.Height()-50)
+    textWidget.SetToolTip("Enter the card values here in CSV format.\n"+
+        "Left column is the front, right column is the back side of cards."+
+        "The first line specifies the name of sides.")
+
+    var createButton = widgets.NewQPushButton2("Create", window)
+    createButton.SetGeometry2(0, window.Height()-20, window.Width(), 20);
+    createButton.ConnectPressed(func() {
+        window.Close()
+        createButtonCb(titleEntry.Text(), textWidget.ToPlainText())
+    })
+
+    window.Show()
+}
+
 func main() {
     var app = gui.NewQGuiApplication(len(os.Args), os.Args)
 
@@ -242,13 +333,17 @@ func main() {
     loadButton.SetGeometry2(0, 0, 500, 100)
     loadButton.ConnectPressed(func() {
         window.Close()
-        loadButtonCallback()
+        showLoadWinButtonCb()
     })
 
     var createButton = widgets.NewQPushButton2("&Create", window)
     createButton.SetShortcut(gui.NewQKeySequence2("C", gui.QKeySequence__NativeText))
     createButton.SetStyleSheet("font: 18pt")
     createButton.SetGeometry2(0, 100, 500, 100)
+    createButton.ConnectPressed(func() {
+        window.Close()
+        showCreateWinButtonCb()
+    })
 
     window.Show()
     app.Exec()
