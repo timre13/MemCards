@@ -98,12 +98,15 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     cardWidget.SetAlignment(core.Qt__AlignCenter)
     cardWidget.SetWordWrap(true)
 
+    var cardIWidget = widgets.NewQLabel2("", window, 0)
+    cardIWidget.SetGeometry2(20, window.Height()-20, window.Width()-40, 20)
+    cardIWidget.SetAlignment(core.Qt__AlignCenter)
+
     // TODO: Restarting deck
     // TODO: Shuffling cards
     // TODO: Going back to main menu
     // TODO: Increasing card font size with Ctrl-+, Ctrl--, Ctrl-MouseWheel
     // TODO: Starting deck with another side visible initially (Flip all cards)
-    // TODO: Show card index (current/all)
 
     var displayActiveCard = func() {
         var bgColor string;
@@ -117,6 +120,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
             cardWidget.SetToolTip(deck.To)
         }
         cardWidget.SetStyleSheet(fmt.Sprintf("background-color: %s; color: white", bgColor))
+        cardIWidget.SetText(fmt.Sprintf("%d/%d", activeCardI+1, len(deck.Cards)))
     }
 
     cardWidget.ConnectMousePressEvent(func(event *gui.QMouseEvent) {
