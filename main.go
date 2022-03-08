@@ -6,6 +6,8 @@ import (
     "fmt"
     "strings"
     "errors"
+    "math/rand"
+    "time"
     "encoding/json"
     "encoding/csv"
     "github.com/therecipe/qt/core"
@@ -81,7 +83,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
 
     var titleLabel = widgets.NewQLabel2(item.Text(CARD_SET_LIST_COL_TITLE), window, 0)
     titleLabel.SetAlignment(core.Qt__AlignCenter)
-    titleLabel.SetFixedWidth(460)
+    titleLabel.SetFixedWidth(500)
     titleLabel.SetFixedHeight(40)
     titleLabel.SetStyleSheet("font: 18pt")
 
@@ -104,7 +106,6 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     cardIWidget.SetGeometry2(20, window.Height()-20, window.Width()-40, 20)
     cardIWidget.SetAlignment(core.Qt__AlignCenter)
 
-    // TODO: Shuffling cards
     // TODO: Going back to main menu
     // TODO: Starting deck with another side visible initially (Flip all cards)
 
@@ -197,6 +198,18 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     restartDeckButton.SetGeometry2(0, 0, 40, 40)
     restartDeckButton.SetStyleSheet("font: 20pt")
     restartDeckButton.ConnectPressed(func() {
+        activeCardI = 0
+        displayActiveCard()
+    })
+
+    var shuffleDeckButton = widgets.NewQPushButton2("S", window)
+    shuffleDeckButton.SetToolTip("Shuffle deck")
+    shuffleDeckButton.SetGeometry2(40, 0, 40, 40)
+    shuffleDeckButton.SetStyleSheet("font: 20pt")
+    shuffleDeckButton.ConnectPressed(func() {
+        rand.Shuffle(len(deck.Cards), func(i, j int){
+            deck.Cards[i], deck.Cards[j] = deck.Cards[j], deck.Cards[i]
+        })
         activeCardI = 0
         displayActiveCard()
     })
@@ -360,6 +373,8 @@ func showCreateWinButtonCb() {
 // TODO: Coloring decks (by category?)
 
 func main() {
+    rand.Seed(time.Now().UnixNano())
+
     var app = gui.NewQGuiApplication(len(os.Args), os.Args)
 
     var window = widgets.NewQWidget(nil, 0)
