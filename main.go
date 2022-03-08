@@ -93,6 +93,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
         panic(err)
     }
 
+    var isSideByDefFront = true
     var activeCardI = 0
     var isActiveCardFrontSide = true
     var cardWFontSize = 18
@@ -107,7 +108,6 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     cardIWidget.SetAlignment(core.Qt__AlignCenter)
 
     // TODO: Going back to main menu
-    // TODO: Starting deck with another side visible initially (Flip all cards)
 
     var displayActiveCard = func() {
         var bgColor string;
@@ -168,7 +168,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
         if activeCardI >= len(deck.Cards)-1 {
             activeCardI = len(deck.Cards)-1
         }
-        isActiveCardFrontSide = true // Flip back the cards
+        isActiveCardFrontSide = isSideByDefFront // Flip back the cards
         displayActiveCard()
     }
 
@@ -177,7 +177,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
         if activeCardI < 0 {
             activeCardI = 0
         }
-        isActiveCardFrontSide = true // Flip back the cards
+        isActiveCardFrontSide = isSideByDefFront // Flip back the cards
         displayActiveCard()
     }
 
@@ -211,6 +211,16 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
             deck.Cards[i], deck.Cards[j] = deck.Cards[j], deck.Cards[i]
         })
         activeCardI = 0
+        displayActiveCard()
+    })
+
+    var flipAllCardsButton = widgets.NewQPushButton2("\U0001F5D8", window)
+    flipAllCardsButton.SetToolTip("Flip all cards")
+    flipAllCardsButton.SetGeometry2(window.Width()-40, 0, 40, 40)
+    flipAllCardsButton.SetStyleSheet("font: 20pt")
+    flipAllCardsButton.ConnectPressed(func() {
+        isSideByDefFront = !isSideByDefFront // Change the default face
+        isActiveCardFrontSide = !isActiveCardFrontSide // Flip the current card
         displayActiveCard()
     })
 
