@@ -92,6 +92,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
 
     var activeCardI = 0
     var isActiveCardFrontSide = true
+    var cardWFontSize = 18
 
     var cardWidget = widgets.NewQLabel2("", window, 0)
     cardWidget.SetGeometry2(20, 40, 460, 440)
@@ -105,7 +106,6 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     // TODO: Restarting deck
     // TODO: Shuffling cards
     // TODO: Going back to main menu
-    // TODO: Increasing card font size with Ctrl-+, Ctrl--, Ctrl-MouseWheel
     // TODO: Starting deck with another side visible initially (Flip all cards)
 
     var displayActiveCard = func() {
@@ -119,7 +119,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
             cardWidget.SetText(deck.Cards[activeCardI].Back)
             cardWidget.SetToolTip(deck.To)
         }
-        cardWidget.SetStyleSheet(fmt.Sprintf("background-color: %s; color: white", bgColor))
+        cardWidget.SetStyleSheet(fmt.Sprintf("background-color: %s; color: white; font: %dpt", bgColor, cardWFontSize))
         cardIWidget.SetText(fmt.Sprintf("%d/%d", activeCardI+1, len(deck.Cards)))
     }
 
@@ -129,6 +129,18 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
         }
 
         isActiveCardFrontSide = !isActiveCardFrontSide
+        displayActiveCard()
+    })
+
+    cardWidget.ConnectWheelEvent(func(event *gui.QWheelEvent){
+        if event.AngleDelta().Y() > 0 {
+            cardWFontSize += 2
+        } else {
+            cardWFontSize -= 2
+        }
+        if cardWFontSize < 8 {
+            cardWFontSize = 8
+        }
         displayActiveCard()
     })
 
