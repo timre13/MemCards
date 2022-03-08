@@ -13,7 +13,7 @@ import (
     "github.com/therecipe/qt/widgets"
 )
 
-const CARD_SET_DIR = "cardsets"
+const DECK_DIR = "decks"
 
 const (
     COLOR_BG            = "#1D3557"
@@ -25,8 +25,8 @@ const (
 
 func UNUSED(x ...interface{}) {}
 
-// This type is used to list the card sets in the load menu
-type CardSetInfo struct {
+// This type is used to list the decks in the load menu
+type DeckInfo struct {
     fileName    string;
     title       string;
     cardCount   int;
@@ -37,7 +37,7 @@ type Card struct {
     Back    string; // The answer
 }
 
-type CardSet struct {
+type Deck struct {
     Name    string; // Display name
     Cards   []Card; // The cards themselves
     From    string; // The name of the front side of cards
@@ -52,26 +52,26 @@ const (
     COUNT_OF_CARD_SET_LIST_COLS = iota
 )
 
-func readCardSet(fileName string) (CardSet, error) {
-    var readBytes, err = ioutil.ReadFile(CARD_SET_DIR+string(os.PathSeparator)+fileName)
+func readDeck(fileName string) (Deck, error) {
+    var readBytes, err = ioutil.ReadFile(DECK_DIR+string(os.PathSeparator)+fileName)
     if err != nil {
-        return CardSet{}, err
+        return Deck{}, err
     }
-    var readStruct = CardSet{}
+    var readStruct = Deck{}
     err = json.Unmarshal(readBytes, &readStruct)
     if err != nil {
-        return CardSet{}, err
+        return Deck{}, err
     }
     return readStruct, nil
 }
 
-func readCardsetInfo(fileName string) (CardSetInfo, error) {
-    var cardSet, err = readCardSet(fileName)
-    return CardSetInfo{fileName, cardSet.Name, len(cardSet.Cards)}, err
+func readDeckInfo(fileName string) (DeckInfo, error) {
+    var deck, err = readDeck(fileName)
+    return DeckInfo{fileName, deck.Name, len(deck.Cards)}, err
 }
 
 func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
-    fmt.Printf("Opening card set: \"%s\"\n", item.Text(CARD_SET_LIST_COL_FILENAME))
+    fmt.Printf("Opening deck: \"%s\"\n", item.Text(CARD_SET_LIST_COL_FILENAME))
 
     var window = widgets.NewQWidget(nil, 0)
     window.SetStyleSheet(fmt.Sprintf("background-color: %s; color: %s", COLOR_BG, COLOR_FG))
@@ -83,9 +83,9 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     titleLabel.SetFixedWidth(500)
     titleLabel.SetStyleSheet("font: 18pt")
 
-    var cardSet, err = readCardSet(item.Text(CARD_SET_LIST_COL_FILENAME))
+    var deck, err = readDeck(item.Text(CARD_SET_LIST_COL_FILENAME))
     if err != nil {
-        fmt.Println("Failed to load card set: \""+item.Text(CARD_SET_LIST_COL_FILENAME)+"\": "+err.Error())
+        fmt.Println("Failed to load deck: \""+item.Text(CARD_SET_LIST_COL_FILENAME)+"\": "+err.Error())
         panic(err)
     }
 
@@ -97,16 +97,23 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     cardWidget.SetAlignment(core.Qt__AlignCenter)
     cardWidget.SetWordWrap(true)
 
+    // TODO: Restarting deck
+    // TODO: Shuffling cards
+    // TODO: Going back to main menu
+    // TODO: Increasing card font size with Ctrl-+, Ctrl--, Ctrl-MouseWheel
+    // TODO: Starting deck with another side visible initially (Flip all cards)
+    // TODO: Show card index (current/all)
+
     var displayActiveCard = func() {
         var bgColor string;
         if isActiveCardFrontSide {
             bgColor = COLOR_CARD_FRONT
-            cardWidget.SetText(cardSet.Cards[activeCardI].Front)
-            cardWidget.SetToolTip(cardSet.From)
+            cardWidget.SetText(deck.Cards[activeCardI].Front)
+            cardWidget.SetToolTip(deck.From)
         } else {
             bgColor = COLOR_CARD_BACK
-            cardWidget.SetText(cardSet.Cards[activeCardI].Back)
-            cardWidget.SetToolTip(cardSet.To)
+            cardWidget.SetText(deck.Cards[activeCardI].Back)
+            cardWidget.SetToolTip(deck.To)
         }
         cardWidget.SetStyleSheet(fmt.Sprintf("background-color: %s; color: white", bgColor))
     }
@@ -140,8 +147,8 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
 
     var goToNextCard = func() {
         activeCardI++
-        if activeCardI >= len(cardSet.Cards)-1 {
-            activeCardI = len(cardSet.Cards)-1
+        if activeCardI >= len(deck.Cards)-1 {
+            activeCardI = len(deck.Cards)-1
         }
         isActiveCardFrontSide = true // Flip back the cards
         displayActiveCard()
@@ -179,9 +186,9 @@ func showLoadWinButtonCb() {
     window.SetWindowTitle("MemCards - Load")
     window.SetFixedSize2(800, 500)
 
-    var dirEntry, err = ioutil.ReadDir(CARD_SET_DIR)
+    var dirEntry, err = ioutil.ReadDir(DECK_DIR)
     if err != nil {
-        var errLabel = widgets.NewQLabel2("Failed to read directory: \""+CARD_SET_DIR+"\": "+err.Error(),
+        var errLabel = widgets.NewQLabel2("Failed to read directory: \""+DECK_DIR+"\": "+err.Error(),
                 window, 0)
         errLabel.SetGeometry2(0, 0, window.Width(), window.Height())
         errLabel.SetAlignment(core.Qt__AlignCenter)
@@ -190,7 +197,7 @@ func showLoadWinButtonCb() {
         for _, f := range dirEntry {
             fileList = append(fileList, f.Name())
         }
-        fmt.Println("Card set files inside \""+CARD_SET_DIR+"\":", fileList)
+        fmt.Println("Deck files inside \""+DECK_DIR+"\":", fileList)
 
         var listWidget = widgets.NewQTreeWidget(window)
         listWidget.SetStyleSheet(fmt.Sprintf("selection-background-color: %s;", COLOR_BG2));
@@ -214,7 +221,7 @@ func showLoadWinButtonCb() {
         })
 
         for _, f := range fileList {
-            var info, err = readCardsetInfo(f)
+            var info, err = readDeckInfo(f)
             if err != nil {
                 fmt.Printf("%s: ERROR: %s\n", f, err.Error())
             } else {
@@ -231,50 +238,52 @@ func showLoadWinButtonCb() {
     window.Show()
 }
 
-func writeCardSetToFile(filename string, cardSet *CardSet) error {
-    jsonCardSet, err := json.Marshal(*cardSet)
+func writeDeckToFile(filename string, deck *Deck) error {
+    jsonDeck, err := json.Marshal(*deck)
     if err != nil {
         return errors.New("Error creating output JSON: "+err.Error())
     }
 
-    fmt.Println("Writing JSON to file: "+string(jsonCardSet))
+    fmt.Println("Writing JSON to file: "+string(jsonDeck))
     // TODO: Don't overwrite existing file
-    err = ioutil.WriteFile(CARD_SET_DIR+string(os.PathSeparator)+filename, jsonCardSet, 0o644)
+    err = ioutil.WriteFile(DECK_DIR+string(os.PathSeparator)+filename, jsonDeck, 0o644)
     if err != nil {
         return errors.New("Error writing to file: "+filename+": "+err.Error())
     }
     return nil
 }
 
-func createButtonCb(cardSetTitle string, cardSetCSV string) {
-    var filename = strings.ReplaceAll(cardSetTitle, " ", "_")+".json"
+func createButtonCb(deckTitle string, deckCSV string) {
+    var filename = strings.ReplaceAll(deckTitle, " ", "_")+".json"
 
-    var reader = csv.NewReader(strings.NewReader(cardSetCSV))
+    var reader = csv.NewReader(strings.NewReader(deckCSV))
     var cardVals, err = reader.ReadAll()
     if err != nil {
         var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Critical, "Error",
-            "Error creating card set: "+err.Error(),
+            "Error creating deck: "+err.Error(),
             widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
         msgBox.Show()
         return
     } else if len(cardVals) < 2 {
         var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Critical, "Error",
-            "Error creating card set: Not enough values in CSV.",
+            "Error creating deck: Not enough values in CSV.",
             widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
         msgBox.Show()
         return
     }
 
-    var cardSet = CardSet{}
-    cardSet.Name = cardSetTitle
-    cardSet.From = cardVals[0][0]
-    cardSet.To = cardVals[0][1]
+    // TODO: Strip spaces from words
+    var deck = Deck{}
+    deck.Name = deckTitle
+    deck.From = cardVals[0][0]
+    deck.To = cardVals[0][1]
     for i, val := range cardVals {
         if i == 0 { continue }
-        cardSet.Cards = append(cardSet.Cards, Card{Front: val[0], Back: val[1]})
+        // TODO: Handle when lines have more/less columns than 2
+        deck.Cards = append(deck.Cards, Card{Front: val[0], Back: val[1]})
     }
 
-    writeCardSetToFile(filename, &cardSet)
+    writeDeckToFile(filename, &deck)
     if err != nil {
         var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Critical, "Error",
             err.Error(),
@@ -283,10 +292,12 @@ func createButtonCb(cardSetTitle string, cardSetCSV string) {
         return
     }
 
-    var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Information, "Card Set Created",
-        fmt.Sprintf("Created a card set.\nTitle: %s\nFilename: %s\n# of cards: %d", cardSet.Name, filename, len(cardSet.Cards)),
+    var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Information, "Deck Created",
+        fmt.Sprintf("Created a deck.\nTitle: %s\nFilename: %s\n# of cards: %d", deck.Name, filename, len(deck.Cards)),
         widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
     msgBox.Show()
+
+    // TODO: Go back to main menu after creating deck
 }
 
 func showCreateWinButtonCb() {
@@ -318,6 +329,10 @@ func showCreateWinButtonCb() {
 
     window.Show()
 }
+
+// TODO: Editing decks
+// TODO: Catgorizing decks (subfolders?)
+// TODO: Coloring decks (by category?)
 
 func main() {
     var app = gui.NewQGuiApplication(len(os.Args), os.Args)
