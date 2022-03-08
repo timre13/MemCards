@@ -37,6 +37,7 @@ type Card struct {
     Back    string; // The answer
 }
 
+// TODO: OOP
 type Deck struct {
     Name    string; // Display name
     Cards   []Card; // The cards themselves
@@ -272,15 +273,14 @@ func createButtonCb(deckTitle string, deckCSV string) {
         return
     }
 
-    // TODO: Strip spaces from words
     var deck = Deck{}
-    deck.Name = deckTitle
-    deck.From = cardVals[0][0]
-    deck.To = cardVals[0][1]
+    deck.Name = strings.TrimSpace(deckTitle)
+    deck.From = strings.TrimSpace(cardVals[0][0])
+    deck.To = strings.TrimSpace(cardVals[0][1])
     for i, val := range cardVals {
         if i == 0 { continue }
         // TODO: Handle when lines have more/less columns than 2
-        deck.Cards = append(deck.Cards, Card{Front: val[0], Back: val[1]})
+        deck.Cards = append(deck.Cards, Card{Front: strings.TrimSpace(val[0]), Back: strings.TrimSpace(val[1])})
     }
 
     writeDeckToFile(filename, &deck)
@@ -324,7 +324,7 @@ func showCreateWinButtonCb() {
     createButton.SetGeometry2(0, window.Height()-20, window.Width(), 20);
     createButton.ConnectPressed(func() {
         window.Close()
-        createButtonCb(titleEntry.Text(), textWidget.ToPlainText())
+        createButtonCb(strings.TrimSpace(titleEntry.Text()), textWidget.ToPlainText())
     })
 
     window.Show()
