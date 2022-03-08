@@ -81,7 +81,8 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
 
     var titleLabel = widgets.NewQLabel2(item.Text(CARD_SET_LIST_COL_TITLE), window, 0)
     titleLabel.SetAlignment(core.Qt__AlignCenter)
-    titleLabel.SetFixedWidth(500)
+    titleLabel.SetFixedWidth(460)
+    titleLabel.SetFixedHeight(40)
     titleLabel.SetStyleSheet("font: 18pt")
 
     var deck, err = readDeck(item.Text(CARD_SET_LIST_COL_FILENAME))
@@ -103,7 +104,6 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     cardIWidget.SetGeometry2(20, window.Height()-20, window.Width()-40, 20)
     cardIWidget.SetAlignment(core.Qt__AlignCenter)
 
-    // TODO: Restarting deck
     // TODO: Shuffling cards
     // TODO: Going back to main menu
     // TODO: Starting deck with another side visible initially (Flip all cards)
@@ -191,6 +191,15 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     goToNextCardButton.ConnectPressed(goToNextCard)
     goToNextCardButton.SetGeometry2(480, 40, 20, 440)
     goToNextCardButton.SetShortcut(gui.NewQKeySequence2("Right", gui.QKeySequence__NativeText))
+
+    var restartDeckButton = widgets.NewQPushButton2("\u21e4", window)
+    restartDeckButton.SetToolTip("Restart deck from beginning")
+    restartDeckButton.SetGeometry2(0, 0, 40, 40)
+    restartDeckButton.SetStyleSheet("font: 20pt")
+    restartDeckButton.ConnectPressed(func() {
+        activeCardI = 0
+        displayActiveCard()
+    })
 
     displayActiveCard()
 
