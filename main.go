@@ -107,8 +107,6 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     cardIWidget.SetGeometry2(20, window.Height()-20, window.Width()-40, 20)
     cardIWidget.SetAlignment(core.Qt__AlignCenter)
 
-    // TODO: Going back to main menu
-
     var displayActiveCard = func() {
         var bgColor string;
         if isActiveCardFrontSide {
@@ -216,12 +214,21 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
 
     var flipAllCardsButton = widgets.NewQPushButton2("\U0001F5D8", window)
     flipAllCardsButton.SetToolTip("Flip all cards")
-    flipAllCardsButton.SetGeometry2(window.Width()-40, 0, 40, 40)
+    flipAllCardsButton.SetGeometry2(window.Width()-80, 0, 40, 40)
     flipAllCardsButton.SetStyleSheet("font: 20pt")
     flipAllCardsButton.ConnectPressed(func() {
         isSideByDefFront = !isSideByDefFront // Change the default face
         isActiveCardFrontSide = !isActiveCardFrontSide // Flip the current card
         displayActiveCard()
+    })
+
+    var toGoMainWinButton = widgets.NewQPushButton2("X", window)
+    toGoMainWinButton.SetToolTip("Close deck")
+    toGoMainWinButton.SetGeometry2(window.Width()-40, 0, 40, 40)
+    toGoMainWinButton.SetStyleSheet("font: 20pt")
+    toGoMainWinButton.ConnectPressed(func() {
+        window.Close()
+        showMainWindow()
     })
 
     displayActiveCard()
