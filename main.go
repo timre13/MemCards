@@ -303,6 +303,9 @@ func writeDeckToFile(filename string, deck *Deck) error {
 }
 
 func parseDeckCsv(deckCSV string, title string) (Deck, error) {
+    if len(title) == 0 {
+        return Deck{}, errors.New("Empty title")
+    }
     var reader = csv.NewReader(strings.NewReader(deckCSV))
     var cardVals, err = reader.ReadAll()
     if err != nil {
