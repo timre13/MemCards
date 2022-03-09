@@ -297,44 +297,49 @@ func writeDeckToFile(filename string, deck *Deck) error {
     // TODO: Don't overwrite existing file
     err = ioutil.WriteFile(DECK_DIR+string(os.PathSeparator)+filename, jsonDeck, 0o644)
     if err != nil {
-        return errors.New("Error writing to file: "+filename+": "+err.Error())
+        return err
     }
     return nil
+}
+
+func parseDeckCsv(deckCSV string, title string) (Deck, error) {
+    var reader = csv.NewReader(strings.NewReader(deckCSV))
+    var cardVals, err = reader.ReadAll()
+    if err != nil {
+        return Deck{}, err
+    } else if len(cardVals) < 2 {
+        return Deck{}, errors.New("Not enough rows in CSV, expected at least 2.")
+    } else if len(cardVals[0]) != 2 {
+        return Deck{}, errors.New("Invalid number of columns in CSV, expected 2.")
+    }
+
+    var deck = Deck{}
+    deck.Name = strings.TrimSpace(title)
+    deck.From = strings.TrimSpace(cardVals[0][0])
+    deck.To = strings.TrimSpace(cardVals[0][1])
+    for i, val := range cardVals {
+        if i == 0 { continue }
+        deck.Cards = append(deck.Cards, Card{Front: strings.TrimSpace(val[0]), Back: strings.TrimSpace(val[1])})
+    }
+    return deck, nil
 }
 
 func createButtonCb(deckTitle string, deckCSV string) {
     var filename = strings.ReplaceAll(deckTitle, " ", "_")+".json"
 
-    var reader = csv.NewReader(strings.NewReader(deckCSV))
-    var cardVals, err = reader.ReadAll()
+    var deck, err = parseDeckCsv(deckCSV, deckTitle)
     if err != nil {
         var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Critical, "Error",
             "Error creating deck: "+err.Error(),
             widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
         msgBox.Show()
         return
-    } else if len(cardVals) < 2 {
-        var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Critical, "Error",
-            "Error creating deck: Not enough values in CSV.",
-            widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
-        msgBox.Show()
-        return
-    }
-
-    var deck = Deck{}
-    deck.Name = strings.TrimSpace(deckTitle)
-    deck.From = strings.TrimSpace(cardVals[0][0])
-    deck.To = strings.TrimSpace(cardVals[0][1])
-    for i, val := range cardVals {
-        if i == 0 { continue }
-        // TODO: Handle when lines have more/less columns than 2
-        deck.Cards = append(deck.Cards, Card{Front: strings.TrimSpace(val[0]), Back: strings.TrimSpace(val[1])})
     }
 
     writeDeckToFile(filename, &deck)
     if err != nil {
         var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Critical, "Error",
-            err.Error(),
+            "Error writing deck to file: "+filename+": "+err.Error(),
             widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
         msgBox.Show()
         return
