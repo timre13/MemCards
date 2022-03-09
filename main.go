@@ -336,6 +336,7 @@ func createButtonCb(deckTitle string, deckCSV string) {
             "Error creating deck: "+err.Error(),
             widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
         msgBox.Show()
+        showMainWindow()
         return
     }
 
@@ -345,6 +346,7 @@ func createButtonCb(deckTitle string, deckCSV string) {
             "Error writing deck to file: "+filename+": "+err.Error(),
             widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
         msgBox.Show()
+        showMainWindow()
         return
     }
 
@@ -352,8 +354,7 @@ func createButtonCb(deckTitle string, deckCSV string) {
         fmt.Sprintf("Created a deck.\nTitle: %s\nFilename: %s\n# of cards: %d", deck.Name, filename, len(deck.Cards)),
         widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
     msgBox.Show()
-
-    // TODO: Go back to main menu after creating deck
+    showMainWindow()
 }
 
 func showCreateWinButtonCb() {
@@ -390,11 +391,7 @@ func showCreateWinButtonCb() {
 // TODO: Catgorizing decks (subfolders?)
 // TODO: Coloring decks (by category?)
 
-func main() {
-    rand.Seed(time.Now().UnixNano())
-
-    var app = gui.NewQGuiApplication(len(os.Args), os.Args)
-
+func showMainWindow() {
     var window = widgets.NewQWidget(nil, 0)
     window.SetStyleSheet(fmt.Sprintf("background-color: %s; color: %s", COLOR_BG, COLOR_FG))
     window.SetWindowTitle("MemCards")
@@ -419,5 +416,13 @@ func main() {
     })
 
     window.Show()
+}
+
+func main() {
+    rand.Seed(time.Now().UnixNano())
+
+    var app = gui.NewQGuiApplication(len(os.Args), os.Args)
+    showMainWindow()
+
     app.Exec()
 }
