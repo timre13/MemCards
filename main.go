@@ -32,6 +32,8 @@ type DeckInfo struct {
     fileName    string;
     title       string;
     cardCount   int;
+    frontSide   string;
+    backSide    string;
 }
 
 type Card struct {
@@ -51,6 +53,8 @@ const (
     CARD_SET_LIST_COL_TITLE     = iota
     CARD_SET_LIST_COL_FILENAME  = iota
     CARD_SET_LIST_COL_CARDCOUNT = iota
+    CARD_SET_LIST_COL_FRONT_SIDE = iota
+    CARD_SET_LIST_COL_BACK_SIDE  = iota
 
     COUNT_OF_CARD_SET_LIST_COLS = iota
 )
@@ -70,7 +74,7 @@ func readDeck(fileName string) (Deck, error) {
 
 func readDeckInfo(fileName string) (DeckInfo, error) {
     var deck, err = readDeck(fileName)
-    return DeckInfo{fileName, deck.Name, len(deck.Cards)}, err
+    return DeckInfo{fileName, deck.Name, len(deck.Cards), deck.From, deck.To}, err
 }
 
 func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
@@ -258,7 +262,7 @@ func showLoadWinButtonCb() {
         var listWidget = widgets.NewQTreeWidget(window)
         listWidget.SetStyleSheet(fmt.Sprintf("selection-background-color: %s;", COLOR_BG2));
         listWidget.SetRootIsDecorated(false)
-        listWidget.SetHeaderLabels([]string{"Title", "File Name", "# of Cards"})
+        listWidget.SetHeaderLabels([]string{"Title", "File Name", "# of Cards", "Front", "Back"})
         listWidget.SetColumnCount(COUNT_OF_CARD_SET_LIST_COLS)
         listWidget.SetGeometry2(0, 0, window.Width(), window.Height())
         listWidget.SetAllColumnsShowFocus(true)
@@ -286,6 +290,8 @@ func showLoadWinButtonCb() {
                 item.SetText(CARD_SET_LIST_COL_TITLE, info.title)
                 item.SetText(CARD_SET_LIST_COL_FILENAME, info.fileName)
                 item.SetText(CARD_SET_LIST_COL_CARDCOUNT, fmt.Sprint(info.cardCount))
+                item.SetText(CARD_SET_LIST_COL_FRONT_SIDE, fmt.Sprint(info.frontSide))
+                item.SetText(CARD_SET_LIST_COL_BACK_SIDE, fmt.Sprint(info.backSide))
                 listWidget.AddTopLevelItem(item)
             }
         }
