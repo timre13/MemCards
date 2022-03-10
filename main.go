@@ -340,7 +340,7 @@ func parseDeckCsv(deckCSV string, title string) (Deck, error) {
     return deck, nil
 }
 
-func createButtonCb(deckTitle string, deckCSV string) {
+func createButtonCb(deckTitle string, deckCSV string) error {
     var filename = strings.ReplaceAll(deckTitle, " ", "_")+".json"
 
     var deck, err = parseDeckCsv(deckCSV, deckTitle)
@@ -349,8 +349,7 @@ func createButtonCb(deckTitle string, deckCSV string) {
             "Error creating deck: "+err.Error(),
             widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
         msgBox.Show()
-        showMainWindow()
-        return
+        return err
     }
 
     writeDeckToFile(filename, &deck)
@@ -359,15 +358,14 @@ func createButtonCb(deckTitle string, deckCSV string) {
             "Error writing deck to file: "+filename+": "+err.Error(),
             widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
         msgBox.Show()
-        showMainWindow()
-        return
+        return err
     }
 
     var msgBox = widgets.NewQMessageBox2(widgets.QMessageBox__Information, "Deck Created",
         fmt.Sprintf("Created a deck.\nTitle: %s\nFilename: %s\n# of cards: %d", deck.Name, filename, len(deck.Cards)),
         widgets.QMessageBox__Ok, nil, core.Qt__Dialog)
     msgBox.Show()
-    showMainWindow()
+    return nil
 }
 
 func showCreateWinButtonCb() {
@@ -393,8 +391,11 @@ func showCreateWinButtonCb() {
     var createButton = widgets.NewQPushButton2("Create", window)
     createButton.SetGeometry2(0, window.Height()-20, window.Width(), 20);
     createButton.ConnectPressed(func() {
-        window.Close()
-        createButtonCb(strings.TrimSpace(titleEntry.Text()), textWidget.ToPlainText())
+        var err = createButtonCb(strings.TrimSpace(titleEntry.Text()), textWidget.ToPlainText())
+        if err == nil {
+            window.Close()
+            showMainWindow()
+        }
     })
 
     window.Show()
