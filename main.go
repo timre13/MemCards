@@ -201,6 +201,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
     restartDeckButton.SetStyleSheet("font: 20pt")
     restartDeckButton.ConnectPressed(func() {
         activeCardI = 0
+        isActiveCardFrontSide = isSideByDefFront // Flip back the cards
         displayActiveCard()
     })
 
@@ -213,6 +214,7 @@ func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
             deck.Cards[i], deck.Cards[j] = deck.Cards[j], deck.Cards[i]
         })
         activeCardI = 0
+        isActiveCardFrontSide = isSideByDefFront // Flip back the cards
         displayActiveCard()
     })
 
@@ -404,6 +406,9 @@ func showCreateWinButtonCb() {
 // TODO: Editing decks
 // TODO: Catgorizing decks (subfolders?)
 // TODO: Coloring decks (by category?)
+// TODO: Delete card
+// TODO: Hide card
+// TODO: Different CSV separators
 
 func showMainWindow() {
     var window = widgets.NewQWidget(nil, 0)
