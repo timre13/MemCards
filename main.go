@@ -34,6 +34,7 @@ type DeckInfo struct {
     cardCount   int;
     frontSide   string;
     backSide    string;
+    color       string;
 }
 
 type Card struct {
@@ -47,6 +48,7 @@ type Deck struct {
     Cards   []Card; // The cards themselves
     From    string; // The name of the front side of cards
     To      string; // The name of the back side of cards
+    Color   string; // The color that will be used in the deck list as row background
 }
 
 const (
@@ -74,7 +76,7 @@ func readDeck(fileName string) (Deck, error) {
 
 func readDeckInfo(fileName string) (DeckInfo, error) {
     var deck, err = readDeck(fileName)
-    return DeckInfo{fileName, deck.Name, len(deck.Cards), deck.From, deck.To}, err
+    return DeckInfo{fileName, deck.Name, len(deck.Cards), deck.From, deck.To, deck.Color}, err
 }
 
 func loadListItemDoubleClickedCallback(item *widgets.QTreeWidgetItem) {
@@ -294,6 +296,14 @@ func showLoadWinButtonCb() {
                 item.SetText(CARD_SET_LIST_COL_CARDCOUNT, fmt.Sprint(info.cardCount))
                 item.SetText(CARD_SET_LIST_COL_FRONT_SIDE, fmt.Sprint(info.frontSide))
                 item.SetText(CARD_SET_LIST_COL_BACK_SIDE, fmt.Sprint(info.backSide))
+                if len(info.color) != 0 {
+                    bgColor := gui.NewQColor6(info.color)
+                    fgColor := gui.NewQColor3(255-bgColor.Red(), 255-bgColor.Green(), 255-bgColor.Blue(), 255)
+                    for c:=0; c < COUNT_OF_CARD_SET_LIST_COLS; c++ {
+                        item.SetBackground(c, gui.NewQBrush3(bgColor, core.Qt__SolidPattern))
+                        item.SetForeground(c, gui.NewQBrush3(fgColor, core.Qt__SolidPattern))
+                    }
+                }
                 listWidget.AddTopLevelItem(item)
             }
         }
